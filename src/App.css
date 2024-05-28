@@ -1,3 +1,12 @@
+/* Light theme. */
+:root {
+  --color-canvas-default: #ffffff;
+  --color-canvas-subtle: #f6f8fa;
+  --color-border-default: #d0d7de;
+  --color-border-muted: hsla(210, 18%, 87%, 1);
+}
+
+
 .App {
   text-align: center;
 }
@@ -36,3 +45,4 @@
     transform: rotate(360deg);
   }
 }
+
