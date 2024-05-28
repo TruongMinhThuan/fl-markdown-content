@@ -55,9 +55,13 @@ https://ob-g.com/corpo/
 interface MarkdownState {
     content: string;
     setContent: (content: string) => void;
+    isModalOpen: boolean;
+    setIsModalOpen: (isModalOpen: boolean) => void;
 }
 
 export const useMarkdownStore = create<MarkdownState>((set) => ({
     content: initialMarkdownContent,
+    isModalOpen: false,
     setContent: (content) => set({ content }),
+    setIsModalOpen: (isModalOpen: boolean) => set({ isModalOpen }),
 }));

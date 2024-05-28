@@ -13,22 +13,6 @@ import MarkdownJsx from 'markdown-to-jsx'
 
 const MarkDownContent: React.FC = () => {
     const { content, setContent } = useMarkdownStore(state => state)
-    const output = micromark('| a |\n| - |', {
-        extensions: [gfmTable()],
-        htmlExtensions: [gfmTableHtml()],
-        allowDangerousHtml: true
-    })
-
-    // useEffect(() => {
-    //     let path = "./Content.md"
-    //     let markdown = "https://github.com/TruongMinhThuan/fl-markdown-content/blob/main/README.md"
-
-    //     fetch(markdown)
-    //         .then(res => res.text())
-    //         .then(res => setContent(res))
-    //         .catch(err => console.log(err));
-
-    // }, []);
 
     return (
         <MarkdownJsx>
