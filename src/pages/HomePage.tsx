@@ -36,6 +36,7 @@ const HomePage: React.FC = () => {
                             <TextArea
                                 rows={30}
                                 value={content}
+                                onChange={(e) => setContent(e.target.value)}
                             />
 
                         </Flex>
