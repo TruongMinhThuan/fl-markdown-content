@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Breadcrumb, Button, CollapseProps, Flex, Layout, theme } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { useMarkdownStore } from '../store';
@@ -13,7 +13,7 @@ const HomePage: React.FC = () => {
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
-    const { content, setContent, setIsModalOpen } = useMarkdownStore(state => state)
+    const { content, setContent, setIsModalOpen, setExtensions } = useMarkdownStore(state => state)
 
     return (
         <Layout>
