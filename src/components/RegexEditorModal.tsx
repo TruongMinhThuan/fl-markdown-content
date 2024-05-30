@@ -5,12 +5,14 @@ import { Button, Modal } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import ButtonGroup from 'antd/es/button/button-group';
+import { MinusCircleFilled, MinusCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 
 
 const RegexEditorModal: React.FC = () => {
     const [regex, setRegex] = useState('[T]itle1');
     const [replacement, setReplacement] = useState('TitleUpdated');
     const [title, setTitle] = useState('Title');
+    const [isAddExtensionVisible, setIsAddExtensionVisible] = useState(false);
 
     const {
         content,
@@ -24,6 +26,7 @@ const RegexEditorModal: React.FC = () => {
         onToggleSelectExtension,
         selectedExtension,
         setExtensions,
+        setSelectExtension
     } = useMarkdownStore((state) => state);
 
     const handleApplyRegex = () => {
@@ -32,13 +35,20 @@ const RegexEditorModal: React.FC = () => {
             // let pattern = `/${regex}/g`;
             // const pattern = new RegExp(regex);
             // string to regular expression
-            let pattern = new RegExp(regex, 'g');
-            console.log('pattern:', regex);
+            let newContent = content;
+            extensions.forEach((extension) => {
+                if (extension.is_selected) {
+                    let pattern = new RegExp(extension.regular_expression, 'g');
+                    console.log('pattern:', regex);
 
-            const newContent = content.replace(pattern, replacement);
-            // console.log('newContent:', newContent);
+                    newContent = newContent.replace(pattern, extension.replacement);
+                    // console.log('newContent:', newContent);
 
+                }
+            })
             setContent(newContent);
+
+
         } catch (error) {
             console.error('Invalid regex pattern:', error);
         }
@@ -51,6 +61,8 @@ const RegexEditorModal: React.FC = () => {
 
     const handleCancel = () => {
         setIsModalOpen(false);
+        setSelectExtension(null);
+        cleanExtensionValues();
     };
 
     const onChangeExtension = (e: MarkdownExtension) => {
@@ -60,15 +72,60 @@ const RegexEditorModal: React.FC = () => {
     };
 
     const onAddExtension = () => {
-        const newExtension: MarkdownExtension = {
-            id: extensions.length + 1,
-            title: title,
-            regular_expression: regex,
-            replacement: replacement,
-            is_selected: true,
-        };
+        if (selectedExtension) {
+            const updatedExtension: MarkdownExtension = {
+                ...selectedExtension,
+                title: title,
+                regular_expression: regex,
+                replacement: replacement,
+            };
+            updateExtension(updatedExtension);
+        }
+        else {
+            const newExtension: MarkdownExtension = {
+                id: extensions.length + 1,
+                title: title,
+                regular_expression: regex,
+                replacement: replacement,
+                is_selected: true,
+            };
+            addExtension(newExtension);
+            onSelectExtension(newExtension)
+        }
 
-        addExtension(newExtension);
+    }
+
+    const onSelectExtension = (extension: MarkdownExtension) => {
+        if (selectedExtension?.id !== extension.id) {
+            setTitle(extension.title);
+            setRegex(extension.regular_expression);
+            setReplacement(extension.replacement);
+            setIsAddExtensionVisible(true);
+            setSelectExtension(extension);
+        } else {
+            setSelectExtension(null);
+            setIsAddExtensionVisible(false);
+
+        }
+    }
+
+    const onAddNewExtensionClick = () => {
+        cleanExtensionValues();
+        setSelectExtension(null);
+        setIsAddExtensionVisible(true);
+    }
+
+    const onRemoveExtensionClick = () => {
+        if (selectedExtension) {
+            removeExtension(selectedExtension);
+            cleanExtensionValues()
+        }
+    }
+
+    const cleanExtensionValues = () => {
+        setTitle('');
+        setRegex('');
+        setReplacement('');
     }
 
     useEffect(() => {
@@ -95,6 +152,8 @@ const RegexEditorModal: React.FC = () => {
         ])
         return () => {
             console.log('cleanup');
+            cleanExtensionValues();
+            setSelectExtension(null);
         }
     }, []);
 
@@ -112,7 +171,7 @@ const RegexEditorModal: React.FC = () => {
                     <div
                         id="scrollableDiv"
                         style={{
-                            maxHeight: 100,
+                            maxHeight: 140,
                             minHeight: 80,
                             overflow: 'auto',
                             border: '1px solid #d9d9d9',
@@ -126,6 +185,7 @@ const RegexEditorModal: React.FC = () => {
                             loader={<h4>Loading...</h4>}
                             scrollableTarget="scrollableDiv"
                             style={{ display: 'flex', flexDirection: 'column-reverse' }} //To put endMessage and loader to the top.
+
                         >
                             {
                                 extensions.map((extension) => (
@@ -144,7 +204,7 @@ const RegexEditorModal: React.FC = () => {
                                         >
                                         </Checkbox>
                                         <div
-                                            onClick={() => onToggleSelectExtension(extension)}
+                                            onClick={() => onSelectExtension(extension)}
                                             style={{
                                                 cursor: 'pointer',
                                                 flex: 1,
@@ -158,50 +218,69 @@ const RegexEditorModal: React.FC = () => {
                                     </Flex>
                                 ))
                             }
-
                         </InfiniteScroll>
                     </div>
-                </div>
-                <div>
-                    <h2>Regexp</h2>
-                    <TextArea
-                        value={regex}
-                        onChange={(e) => setRegex(e.target.value)}
-                        rows={5}
-                        cols={50}
-                        placeholder='Enter regular expression'
-                    />
-                </div>
-                <div>
-                    <h2>Replace</h2>
-                    <TextArea
-                        value={replacement}
-                        onChange={(e) => setReplacement(e.target.value)}
-                        rows={5}
-                        cols={50}
-                        placeholder='Enter replacement '
-                    />
-                </div>
-                <div>
-                    <h2>Title & Comment</h2>
-                    <Input
-                        placeholder="Enter title & comment"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                    />
-                </div>
-                <div
-                    style={{
-                        marginTop: 30,
+                    <div style={{
                         display: 'flex',
-                        justifyItems: 'flex-end',
-                        justifyContent: 'center',
-                        gap: 50,
-                    }}
-                >
-                    <Button onClick={handleCancel}>Cancel</Button>
-                    <Button onClick={onAddExtension}>Save</Button>
+                        justifyContent: 'flex-end',
+                        gap: 6,
+                        marginTop: 6,
+                    }}>
+                        <Button onClick={handleApplyRegex}>
+                            Apply
+                        </Button>
+                        <MinusCircleFilled onClick={onRemoveExtensionClick} style={{ fontSize: 24, color: 'gray' }} />
+                        <PlusCircleOutlined onClick={onAddNewExtensionClick} style={{ fontSize: 24, color: 'gray' }} />
+                    </div>
                 </div>
+
+                {/* Add Extension */}
+                {
+                    isAddExtensionVisible && (
+                        <>
+                            <div>
+                                <h2>Regexp</h2>
+                                <TextArea
+                                    value={regex}
+                                    onChange={(e) => setRegex(e.target.value)}
+                                    rows={5}
+                                    cols={50}
+                                    placeholder='Enter regular expression'
+                                />
+                            </div>
+                            <div>
+                                <h2>Replace</h2>
+                                <TextArea
+                                    value={replacement}
+                                    onChange={(e) => setReplacement(e.target.value)}
+                                    rows={5}
+                                    cols={50}
+                                    placeholder='Enter replacement '
+                                />
+                            </div>
+                            <div>
+                                <h2>Title & Comment</h2>
+                                <Input
+                                    placeholder="Enter title & comment"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                />
+                            </div>
+                            <div
+                                style={{
+                                    marginTop: 30,
+                                    display: 'flex',
+                                    justifyItems: 'flex-end',
+                                    justifyContent: 'center',
+                                    gap: 50,
+                                }}
+                            >
+                                <Button onClick={handleCancel}>Cancel</Button>
+                                <Button onClick={onAddExtension}>Save</Button>
+                            </div>
+                        </>
+                    )
+                }
             </Flex>
             {/* <button onClick={handleApplyRegex}>Apply Regex</button> */}
         </Modal>

@@ -72,6 +72,7 @@ interface MarkdownState {
     updateExtension: (extension: MarkdownExtension) => void;
     selectedExtension: MarkdownExtension | null;
     onToggleSelectExtension: (extension: MarkdownExtension) => void;
+    setSelectExtension: (extension: MarkdownExtension | null) => void;
 }
 
 export const useMarkdownStore = create<MarkdownState>((set, get) => ({
@@ -93,6 +94,7 @@ export const useMarkdownStore = create<MarkdownState>((set, get) => ({
         } else {
             set({ selectedExtension: extension })
         }
-    }
+    },
+    setSelectExtension: (extension: MarkdownExtension | null) => set({ selectedExtension: extension }),
 
 }));
