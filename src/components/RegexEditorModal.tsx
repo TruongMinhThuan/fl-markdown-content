@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { MarkdownExtension, useMarkdownStore } from '../store';
-import { Checkbox, CheckboxProps, Flex, GetProp, Input, Space } from 'antd';
+import { Checkbox, CheckboxProps, Flex, GetProp, Input, notification, Space } from 'antd';
 import { Button, Modal } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import ButtonGroup from 'antd/es/button/button-group';
 import { MinusCircleFilled, MinusCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 
+import type { NotificationArgsProps } from 'antd';
+
+
+const Context = React.createContext({ name: 'Default' });
 
 const RegexEditorModal: React.FC = () => {
     const [regex, setRegex] = useState('[T]itle1');
@@ -28,6 +32,9 @@ const RegexEditorModal: React.FC = () => {
         setExtensions,
         setSelectExtension
     } = useMarkdownStore((state) => state);
+    const [api, contextHolder] = notification.useNotification();
+
+
 
     const handleApplyRegex = () => {
         try {
@@ -72,6 +79,12 @@ const RegexEditorModal: React.FC = () => {
     };
 
     const onAddExtension = () => {
+
+        if (!title || !regex || !replacement) {
+            api.error({ duration: 4, message: `Please fill all fields`, description: 'Title, Regular Expression and Replacement are required' });
+            return;
+        }
+
         if (selectedExtension) {
             const updatedExtension: MarkdownExtension = {
                 ...selectedExtension,
@@ -80,6 +93,8 @@ const RegexEditorModal: React.FC = () => {
                 replacement: replacement,
             };
             updateExtension(updatedExtension);
+
+            api.success({ duration: 2, message: `Extension updated`, description: `Extension ${title} updated successfully` });
         }
         else {
             const newExtension: MarkdownExtension = {
@@ -91,6 +106,8 @@ const RegexEditorModal: React.FC = () => {
             };
             addExtension(newExtension);
             onSelectExtension(newExtension)
+
+            api.success({ duration: 2, message: `Extension added`, description: `Extension ${title} added successfully` });
         }
 
     }
@@ -132,23 +149,17 @@ const RegexEditorModal: React.FC = () => {
         setExtensions([
             {
                 id: 1,
-                title: 'Header1',
+                title: 'Title1',
                 regular_expression: '[T]itle1',
-                replacement: 'TitleUpdated',
+                replacement: 'Title_Updated1',
             },
             {
                 id: 2,
-                title: 'iFrame',
+                title: 'Title2',
                 regular_expression: '[T]itle2',
-                replacement: 'TitleUpdated',
+                replacement: 'Title_Updated2',
                 is_selected: true,
-            },
-            {
-                id: 3,
-                title: 'Chat GPT',
-                regular_expression: '[T]itle3',
-                replacement: 'TitleUpdated',
-            },
+            }
         ])
         return () => {
             console.log('cleanup');
@@ -165,6 +176,7 @@ const RegexEditorModal: React.FC = () => {
             okButtonProps={{ style: { display: 'none' } }}
             cancelButtonProps={{ style: { display: 'none' } }}
         >
+            {contextHolder}
             <Flex vertical>
                 <div>
                     <h1>Markdown Extension</h1>
@@ -220,18 +232,21 @@ const RegexEditorModal: React.FC = () => {
                             }
                         </InfiniteScroll>
                     </div>
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        gap: 6,
-                        marginTop: 6,
-                    }}>
-                        <Button onClick={handleApplyRegex}>
+                    <Flex
+                        style={{
+                            justifyContent: 'flex-end',
+                            gap: 6,
+                            marginTop: 6,
+                        }}
+                    >
+                        <Button onClick={handleApplyRegex} style={{ marginRight: 26 }}>
                             Apply
                         </Button>
-                        <MinusCircleFilled onClick={onRemoveExtensionClick} style={{ fontSize: 24, color: 'gray' }} />
-                        <PlusCircleOutlined onClick={onAddNewExtensionClick} style={{ fontSize: 24, color: 'gray' }} />
-                    </div>
+                        <Flex gap={6} >
+                            <MinusCircleFilled onClick={onRemoveExtensionClick} style={{ fontSize: 24, color: 'gray' }} />
+                            <PlusCircleOutlined onClick={onAddNewExtensionClick} style={{ fontSize: 24, color: 'gray' }} />
+                        </Flex>
+                    </Flex>
                 </div>
 
                 {/* Add Extension */}
