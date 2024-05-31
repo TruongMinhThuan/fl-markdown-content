@@ -70,6 +70,8 @@ const RegexEditorModal: React.FC = () => {
         setIsModalOpen(false);
         setSelectExtension(null);
         cleanExtensionValues();
+        setIsAddExtensionVisible(false);
+
     };
 
     const onChangeExtension = (e: MarkdownExtension) => {
@@ -165,6 +167,7 @@ const RegexEditorModal: React.FC = () => {
             console.log('cleanup');
             cleanExtensionValues();
             setSelectExtension(null);
+            setIsAddExtensionVisible(false);
         }
     }, []);
 
